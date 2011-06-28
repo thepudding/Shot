@@ -69,7 +69,7 @@ class Assert
       #{message}
       """, false)
   @no_exception: (block, message = "") ->
-    log.print("Assert.no_exception. . .\t")
+    log.print("Assert.no_exception. . .")
     try
       block()
       log("#{C('green')}Succeeded!#{C('clear')}")
@@ -112,28 +112,29 @@ class TestCase
       ran = true
       log("Test case: #{C('blue')}#{this.name}#{C('clear')}\n")
       for member of new this()
-        try
-          test_case = new this()
-          log("#{C('blue')}#{member}:#{C('clear')}")
-          test_case.setup?() #run if it exists
-          test_case[member]() if /test/.test(member) # Only test methods begining with 'test'
-          test_case.teardown?() #run if it exists
-          test_case = null
-          @stats.passed += 1
-          # TODO add colors to messages!
-          log("\t\t\t----------\n\t\t\t#{C('green')}Passed!#{C('clear')}")
-          log("===============")
-        catch error
-          log("#{error.stack}\n")
-          log("===============")
-          @stats[if /failure/.test(error.message) then "failed" else "error"] += 1
-      log("""
-          Passed: #{C('green')}#{@stats.passed}#{C('clear')} Failed: #{if @stats.failed > 0 then C('red') else ""}#{@stats.failed}#{C('clear')} Errored: #{if @stats.errored > 0 then C('red')  else ""}#{@stats.errored}#{C('clear')}
-          #{if @stats.failed + @stats.errored == 0
-              "congratulations! All your tests in #{@name} are passing"
-            else
-              'Oh Noes!'}
-          """)
+        if /test/.test(member)
+          try
+            test_case = new this()
+            log("#{C('blue')}#{member}:#{C('clear')}")
+            test_case.setup?() #run if it exists
+            test_case[member]() # Only test methods begining with 'test'
+            test_case.teardown?() #run if it exists
+            test_case = null
+            @stats.passed += 1
+            # TODO add colors to messages!
+            log("\t\t\t----------\n\t\t\t#{C('green')}Passed!#{C('clear')}")
+            log("===============")
+          catch error
+            log("#{error.stack}\n")
+            log("===============")
+            @stats[if /failure/.test(error.message) then "failed" else "error"] += 1
+        log("""
+            Passed: #{C('green')}#{@stats.passed}#{C('clear')} Failed: #{if @stats.failed > 0 then C('red') else ""}#{@stats.failed}#{C('clear')} Errored: #{if @stats.errored > 0 then C('red')  else ""}#{@stats.errored}#{C('clear')}
+            #{if @stats.failed + @stats.errored == 0
+                "congratulations! All your tests in #{@name} are passing"
+              else
+                'Oh Noes!'}
+            """)
 
 class TestSuite
   @test_cases: [ ]
@@ -141,9 +142,8 @@ class TestSuite
     passed: 0
     failed: 0
     errored: 0
-  @test_cases: { }
-  @add: (test_case) ->
-    @test_cases.push(test_case)
+  @add: (test_cases...) ->
+    @test_cases.push(test_cases...)
   @run: () ->
     log("""
         	Running #{@name}
@@ -158,8 +158,7 @@ class TestSuite
         #{if @stats.failed + @stats.errored == 0
             "congratulations! All your tests in #{@name} are passing"
           else
-            'Oh Noes!'}
-                
+            'Oh Noes!'}                
         """)
     
   @add_stats: (stats) ->
